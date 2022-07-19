@@ -1,6 +1,18 @@
-import { createMachine } from 'xstate';
+var xstate = require('xstate');
+var device_utils = require('./device_utils.js');
+var broadcast_utils = require('./broadcast_utils.js')
+var udp_server = require('./udp_server.js')
 
-const swarmMachine = createMachine({
+var port_assigned = process.argv[2];
+var schedule_id = process.argv[3];
+
+let device = new device_utils.device_info(state='idle',port_assigned=port_assigned, 
+                                        schedule_id=schedule_id, grouped=false, SWARM_PORTS=new Set(),
+                                        ALL_PORTS =  ([3000,3001,3002]));
+
+
+
+const swarmMachine = xstate.createMachine({
     id: 'swarm',
     initial: 'idle',
     context: {
@@ -13,7 +25,7 @@ const swarmMachine = createMachine({
             }
         },
         grouping: {
-            entry: ['leaderselection'],
+            entry: ['group'],
             on: {
                 SUCCESS: { target: 'leader_selection' }
                 //actions:
@@ -21,6 +33,7 @@ const swarmMachine = createMachine({
             }
         },
         leader_selection: {
+            entry: ['leaderselection'],
             on: {
                 IF_LEADER: 'leaderState',
                 IF_SLAVE: 'slaveStateWait'
@@ -55,7 +68,11 @@ const swarmMachine = createMachine({
 },
     {
         actions: {
-            leader_selection: (context, event) => {
+            group: (context, event)=>{
+                udp_server.set_udpserver(device, swarmMachine)
+            },
+            leaderselection: (context, event) => {
+                clearInterval(udp_broadcast)
                 console.log('assign leader/slave');
             },
             downloadfromserver: (context, event) => {
@@ -76,10 +93,36 @@ const swarmMachine = createMachine({
 
     });
 
-const currentState = 'idle';
+function transit(swarmMachine, event){
+    currentState = swarmMachine.transition(currentState, event);
+    device.state = currentState.value;
+    console.log(device.state)
+    const { actions } = currentState;
 
-const nextState = swarmMachine.transition(currentState, 'SUCCESS').value;
+    actions.forEach((action) => {
+    // If the action is executable, execute it
+    typeof action.exec === 'function' && action.exec();
+    });
+}  
 
+let currentState = swarmMachine.initialState;
+let prevState = 'none'
+
+var udp_broadcast = setInterval(function() {
+    console.log(`device:current_sate:${device.state}`);
+    if(device.state != prevState){
+        transit(swarmMachine, 'SUCCESS');
+    }
+    broadcast_utils.broadcast(device)
+    console.log(device.SWARM_PORTS)
+
+    prevState = device.state;
+  }, 3000);
+
+
+module.exports = {
+    transit,
+}
 
 
 
