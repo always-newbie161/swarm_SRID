@@ -16,3 +16,6 @@ This is a implementation of Samsung's patented swam-based content downloading al
 	 * `node app.js 3001 1`
 	 * `node app.js 3002 1`
 	 * Note: first argument is the `port` used by the udp server and the second argument is the `schedule id` required by the device. 
+	 
+* Working demo of the algorithm when the leader selection is done after the grouping.
+![8D1F65D2-6E77-4A8E-A0D7-AFD1B4ED9D70](https://user-images.githubusercontent.com/66471669/181498391-93e2bd75-e29c-4a70-83cf-981bed2acdf6.jpeg)
