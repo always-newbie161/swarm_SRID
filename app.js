@@ -16,7 +16,7 @@ const swarmMachine = xstate.createMachine({
     id: 'swarm',
     initial: 'idle',
     context: {
-        count: 0    // to check for the number of donors
+        count: 0    
     },
     states: {
         idle: {
@@ -73,7 +73,21 @@ const swarmMachine = xstate.createMachine({
             },
             leaderselection: (context, event) => {
                 clearInterval(udp_broadcast)
-                console.log('assign leader/slave');
+         
+                const [first] = device.ALL_PORTS;
+            
+                if (device.port_assigned == first) {
+                    console.log('assigned leader');
+                    event = 'IF_LEADER';
+                }
+                else {
+                    event = 'IF_SLAVE';
+                    console.log('assigned slave');
+                }
+                 
+                console.log('assigned leader/slave');
+                transit(swarmMachine, event);
+              
             },
             downloadfromserver: (context, event) => {
                 console.log('leader downloads content from external server');
