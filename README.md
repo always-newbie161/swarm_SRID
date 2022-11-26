@@ -4,7 +4,7 @@ This is a implementation of Samsung's patented swam-based content downloading al
 
 * `app.js`: contains the code for state diagram and the flow of the algorithm from start to end through all the states.
 * `broadcast_utils.js`: contains the UDP broadcast function.
-* `device_utils.js`: contains the class function for device information that will be shared mong the devices.
+* `device_utils.js`: contains the class function for device information that will be shared among the devices.
 * `udp_server.js`: contains the code for udp server which hears the broadcasted info and updates the devices db in every device. 
 
 ## To Run
